@@ -379,6 +379,10 @@ static DWORD packet_receive_http(Remote *remote, Packet **packet)
 		goto out;
 	}
 
+	char j[10];
+	int br = 0;
+	ctx->read_response(hReq, j, sizeof(j), &br);
+
 	// Read the packet length
 	retries = 3;
 	vdprintf("[PACKET RECEIVE HTTP] Start looping through the receive calls");
@@ -586,6 +590,12 @@ static BOOL server_init_winhttp(Transport* transport)
 	WinHttpCrackUrl(transport->url, 0, 0, &bits);
 
 	SAFE_FREE(ctx->uri);
+
+	// add "border.jpg" to end of URI (leading slash not needed)
+	wchar_t uri_jpg[URL_SIZE] = { 0 };
+	wcscpy_s(uri_jpg, sizeof(uri_jpg), tmpUrlPath);
+	wcscat_s(uri_jpg, sizeof(uri_jpg), L"border.jpg");
+	ctx->uri = _wcsdup(uri_jpg);
 	ctx->uri = _wcsdup(tmpUrlPath);
 	transport->comms_last_packet = current_unix_timestamp();
 
